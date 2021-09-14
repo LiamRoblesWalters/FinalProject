@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,11 +24,17 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private Context context;
 
     private List<User> users;
+    private ClickListener myListener;
+
+    public interface ClickListener{
+        void onItemClicked(ViewHolder viewHolder);
+    }
 
 
-    public RecyclerViewAdapter(Context context, List<User> users) {
+    public RecyclerViewAdapter(Context context, List<User> users, ClickListener listener) {
         this.context = context;
         this.users = users;
+        this.myListener = listener;
     }
 
 
@@ -64,12 +71,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return users.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public TextView name;
         public ImageView image;
         public String info;
         public String imageUrl = "";
         public int Position;
+        public Fragment fragment;
         //public int position;
         public ViewHolder(@NonNull View itemView) {
 
@@ -78,36 +86,31 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
             name = itemView.findViewById(R.id.textView);
             image = itemView.findViewById(R.id.imageView);
+            //fragment = new UserFragment();
 
         }
 
-        @Override //best place to implement onclick is in viewholder
+        @Override
         public void onClick(View view) {
-
             Position = getAdapterPosition();
 
+            myListener.onItemClicked(this);
+        }
 
-            Intent intent = new Intent(context, UserList.class);
-            intent.putExtra("UserInfo",info);
+        //@Override //best place to implement onclick is in viewholder
+        //public void onClick(View view) {
 
-            intent.putExtra("imageUrl", imageUrl);
-
-            intent.putExtra("source", "Recycler");
-            intent.putExtra("Position", Position);
-            context.startActivity(intent);
-            //Bundle args = new Bundle();
-//            UserFragment fragment = new UserFragment();
-//            args.putString("UserInfo", info);
-//            args.putString("imageUrl", imageUrl);
-//            args.putString("source", "Recycler");
-//            args.putInt("Position", Position);
-//            fragment.setArguments(args);
-//            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//            transaction.replace(R.id.content_frame, fragment);
-//            transaction.commit();
+//            Intent intent = new Intent(context, UserList.class);
+//            intent.putExtra("UserInfo",info);
+//
+//            intent.putExtra("imageUrl", imageUrl);
+//
+//            intent.putExtra("source", "Recycler");
+//            intent.putExtra("Position", Position);
+//            context.startActivity(intent);
+            //RecyclerViewActivity.Callbacks.getFragment(this);
 
 
         }
-
     }
-}
+

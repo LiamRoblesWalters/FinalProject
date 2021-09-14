@@ -9,12 +9,11 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 
-import androidx.core.content.FileProvider;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
-import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,11 +28,7 @@ import com.google.gson.reflect.TypeToken;
 import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -41,13 +36,14 @@ import java.util.List;
  * Use the {@link UserFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class UserFragment extends Fragment implements CameraAction.CameraDialogListener{
+public class UserFragment extends Fragment implements View.OnClickListener{
 
-    private TextView userInfo;
-    private ImageView image;
+    private EditText userInfo;
+    ImageView image;
     private EditText email;
     private EditText address;
     private Button saveInfo;
+    private Button editInfo;
     private String[] info;
     private List<User> users;
     private static final String MyPrefs = "myPrefs";
@@ -55,14 +51,15 @@ public class UserFragment extends Fragment implements CameraAction.CameraDialogL
     private static final String Info = "infoKey";
     private static Uri uri = null;
     private Boolean uriChanged = false;
+    private Boolean textEdited = false;
     private static final int REQUEST_IMAGE_CAPTURE = 9;
     private static int Position = 0;
 
     private SharedPreferences sharedPreferences;
 
-    public ImageView getImage() {
-        return image;
-    }
+//    public ImageView getImage() {
+//        return image;
+//    }
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -74,7 +71,7 @@ public class UserFragment extends Fragment implements CameraAction.CameraDialogL
     private String mParam2;
 
     public UserFragment() {
-        // Required empty public constructor
+        super(R.layout.fragment_user);
     }
 
     /**
@@ -96,54 +93,73 @@ public class UserFragment extends Fragment implements CameraAction.CameraDialogL
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+//        if (getArguments() != null) {
+//            mParam1 = getArguments().getString(ARG_PARAM1);
+//            mParam2 = getArguments().getString(ARG_PARAM2);
+//        }
+        //setContentView(R.layout.activity_user_list);
+
+
+    }
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_user, container, false);
     }
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-        //setContentView(R.layout.activity_user_list);
 
-        userInfo = getActivity().findViewById(R.id.user_info);
-        image = getActivity().findViewById(R.id.imageView2);
-        email = getActivity().findViewById(R.id.editTextEmail);
-        address = getActivity().findViewById(R.id.editTextAddress);
-        saveInfo = getActivity().findViewById(R.id.save_info);
+
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState){
+        super.onViewCreated(view, savedInstanceState);
+        userInfo = getActivity().findViewById(R.id.fragment_user_info);
+        if (getActivity() == null){
+            Log.d("Error", "onCreate: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + getActivity());
+        }else{
+            Log.d("userInfo", "onCreate: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + userInfo);
+            Log.d("Error", "onCreate: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + getActivity());
+        }
+        image = getActivity().findViewById(R.id.fragment_image);
+        email = getActivity().findViewById(R.id.email_fragment);
+        address = getActivity().findViewById(R.id.address_fragment);
+        saveInfo = getActivity().findViewById(R.id.fragment_save_info);
+        editInfo = getActivity().findViewById(R.id.edit_button);
 
         sharedPreferences = getActivity().getSharedPreferences(MyPrefs, Context.MODE_PRIVATE);
 
         RetrieveUserData();
 
-        Intent intent = getActivity().getIntent();
-
-        if (intent != null) {
-            String source = intent.getStringExtra("source");
+        if (getArguments() != null) {
+            String source = getArguments().getString("source");
             if (source.equals("Recycler")) {
-                Position = intent.getIntExtra("Position", 0);
-                String user_details = intent.getStringExtra("UserInfo");
+                Position = getArguments().getInt("Position", 0);
+                String user_details = sharedPreferences.getString("UserInfo", null);
                 info = user_details.split("\n");
-                userInfo.setText(info[0]);
+
                 if (info[1].replace("Email", "").trim().length() < 3) {
                     if (sharedPreferences.getString(Info, "") == "") {
-                        email.setVisibility(View.VISIBLE);
-                        address.setVisibility(View.VISIBLE);
+                        userInfo.setText("Name: " + users.get(Position).name);
+                        userInfo.setFocusableInTouchMode(true);
+                        email.setFocusableInTouchMode(true);
+                        address.setFocusableInTouchMode(true);
                         saveInfo.setVisibility(View.VISIBLE);
                     } else {
-                        userInfo.setText(sharedPreferences.getString(Info, ""));
+                        userInfo.setText("Name: " + users.get(Position).name);
+                        email.setText("Email: " + users.get(Position).email);
+                        address.setText("Street: " + users.get(Position).address.street);
                     }
 
                 } else {
-                    userInfo.setText(intent.getStringExtra("UserInfo"));
+                    userInfo.setText("Name: " + users.get(Position).name);
+                    email.setText("Email: " + users.get(Position).email);
+                    address.setText("Street: " + users.get(Position).address.street);
                 }
                 //}
 
-                Picasso.with(getActivity()).load(intent.getStringExtra("imageUrl")).resize(500, 500)
+                Picasso.with(getActivity()).load(users.get(Position).imageUri).resize(500, 500)
                         .centerCrop()
                         .into(image);
                 image.setVisibility(View.VISIBLE);
@@ -152,30 +168,52 @@ public class UserFragment extends Fragment implements CameraAction.CameraDialogL
         }
 
 
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        image.setOnClickListener(this);
+//
+        editInfo.setOnClickListener(this);
 
+        saveInfo.setOnClickListener(this);
+
+    }
+
+    @Override
+    public void onClick(View view){
+        switch (view.getId()){
+            case R.id.fragment_image:
                 showCameraDialog();
-            }
-        });
+                break;
 
-        saveInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String personalInfo = String.format("%s\nEmail: %s\nAddress: %s", userInfo.getText().toString(), email.getText().toString(), address.getText().toString());
-                email.setVisibility(View.GONE);
-                address.setVisibility(View.GONE);
+            case R.id.fragment_save_info:
+                //tring personalInfo = String.format("%s\nEmail: %s\nAddress: %s", userInfo.getText().toString(), email.getText().toString(), address.getText().toString());
+                userInfo.setFocusable(false);
+                email.setFocusable(false);
+                address.setFocusable(false);
                 saveInfo.setVisibility(View.GONE);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(Info, personalInfo);
-                editor.apply();
-                userInfo.setText(sharedPreferences.getString(Info, ""));
+                editInfo.setVisibility(View.VISIBLE);
 
-            }
-        });
+                textEdited = true;
+
+//                SaveUserData();
+
+//                SharedPreferences.Editor editor = sharedPreferences.edit();
+//                editor.putString(Info, personalInfo);
+//                editor.apply();
+//                userInfo.setText(sharedPreferences.getString(Info, ""));
+                break;
+
+            case R.id.edit_button:
+                saveInfo.setVisibility(View.VISIBLE);
+                editInfo.setVisibility(View.GONE);
+                userInfo.setFocusableInTouchMode(true);
+                email.setFocusableInTouchMode(true);
+                address.setFocusableInTouchMode(true);
+
+                break;
 
 
+            default:
+                throw new IllegalStateException("Unexpected value: " + view.getId());
+        }
     }
 
     @Override
@@ -190,46 +228,56 @@ public class UserFragment extends Fragment implements CameraAction.CameraDialogL
         dialog.show(getParentFragmentManager(), "NoticeDialogFragment");
     }
 
-    @Override
-    public void onDialogPositiveClick(DialogFragment dialog) {
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
-
-    }
-
-    @Override
-    public void onDialogNegativeClick(DialogFragment dialog) {
-        Toast.makeText(getActivity(), "Camera Access Denied", Toast.LENGTH_LONG);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-            uri = getImageUri(getActivity(), bitmap);
-            uriChanged = true;
-
-            Picasso.with(getActivity()).load(uri).resize(500, 500).centerCrop().into(image);
-            image.setVisibility(View.VISIBLE);
-
-        }
-    }
+//    @Override
+//    public void onDialogPositiveClick(DialogFragment dialog) {
+//        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
+//
+//    }
+//
+//    @Override
+//    public void onDialogNegativeClick(DialogFragment dialog) {
+//        Toast.makeText(getActivity(), "Camera Access Denied", Toast.LENGTH_LONG);
+//    }
+//
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+//            Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+//            uri = getImageUri(getActivity(), bitmap);
+//            uriChanged = true;
+//
+//            Picasso.with(getActivity()).load(uri).resize(500, 500).centerCrop().into(image);
+//            image.setVisibility(View.VISIBLE);
+//
+//        }
+//    }
     public void SaveUserData(){
         if (uriChanged == true) {
             users.get(Position).imageUri = "" + uri;
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            Gson gson = new Gson();
-            String jsonUsers = gson.toJson(users);
-
-            editor.putString(UserKey, jsonUsers);
-            editor.apply();
 
             uriChanged = false;
         }
+        if (textEdited == true) {
+            users.get(Position).name = userInfo.getText().toString().replace("Name: ", "").trim
+                    ();
+            users.get(Position).email = email.getText().toString().replace("Email: ", "").trim
+                    ();
+            users.get(Position).address.street = address.getText().toString().replace("Street: ", "").trim
+                    ();
+
+            textEdited = false;
+        }
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        String jsonUsers = gson.toJson(users);
+
+        editor.putString(UserKey, jsonUsers);
+        editor.apply();
 
     }
-
+//
     public void RetrieveUserData() {
         String serializedObject = sharedPreferences.getString(UserKey, null);
         if (serializedObject != null) {
@@ -240,8 +288,8 @@ public class UserFragment extends Fragment implements CameraAction.CameraDialogL
         }
 
     }
-
-
+//
+//
     public Uri getImageUri(Context inContext, Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);

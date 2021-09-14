@@ -5,6 +5,7 @@ import static android.app.PendingIntent.getActivity;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,6 +55,7 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
     private static final String MyPrefs = "myPrefs";
     private static final String UserKey = "sharedUsers";
     private SharedPreferences sharedPreferences;
+    private UserFragment fragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,19 +97,75 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
             RetrieveUserData();
         }
 
+        SharedPreferences.Editor editor = sharedPreferences.edit();// myObject - instance of MyObject
+        editor.putString("Class", getClass().toString());
+        editor.apply();
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        // myObject - instance of MyObject
+//        editor.putString("Class", getClass().toString());
+//        editor.apply();
 
             //
             cardView = findViewById(R.id.cardView);
             recyclerView = findViewById(R.id.recycler_view);
             recyclerView.setHasFixedSize(true);
             recyclerView.setLayoutManager(new LinearLayoutManager(this)); // lets recycler view set up its layout
+        RecyclerViewAdapter.ClickListener listener = new RecyclerViewAdapter.ClickListener() {
+            @Override
+            public void onItemClicked(RecyclerViewAdapter.ViewHolder viewHolder) {
+                Intent args = new Intent(getApplicationContext(), FragmentActivity.class);
+//                if (fragment == null) {
+//                    fragment = new UserFragment();
+//                }
+//                args.putExtra("UserInfo", viewHolder.info);
+                args.putExtra("imageUrl", viewHolder.imageUrl);
+                args.putExtra("source", "Recycler");
+                args.putExtra("Position", viewHolder.Position);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt("Position", viewHolder.Position);
+                editor.putString("UserInfo", viewHolder.info);
+                editor.apply();
+//                fragment.setArguments(args);
+//                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//                transaction.replace(R.id.fragment_container_view, fragment);
+//                transaction.commit();
+                startActivity(args);
 
-            recyclerViewAdapter = new RecyclerViewAdapter(this, users); // instantiate recycler view adapter
+                finish();
+            }
+        };
+
+            recyclerViewAdapter = new RecyclerViewAdapter(this, users, listener); // instantiate recycler view adapter
 
             recyclerView.setAdapter(recyclerViewAdapter);
 
 
+
         }
+
+    @Override
+    public void onStart(){
+        super.onStart();
+    }
+
+
+
+//            public void getFragment(RecyclerViewAdapter.ViewHolder viewHolder) {
+//                Bundle args = new Bundle();
+//                UserFragment fragment = new UserFragment();
+//                args.putString("UserInfo", viewHolder.info);
+//                args.putString("imageUrl", viewHolder.imageUrl);
+//                args.putString("source", "Recycler");
+//                args.putInt("Position", viewHolder.Position);
+//                fragment.setArguments(args);
+//                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//                transaction.replace(R.id.recycler_view_layout, fragment);
+//                transaction.commit();
+//            }
+
+
+
+
 
         @Override
         public void onPause(){
@@ -149,14 +207,15 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
-    @Override
-    public void onBackPressed(){
-        Toast.makeText(this, "Please Log Out to Return to Login Page", Toast.LENGTH_LONG)
-                .show();
-    }
+//    @Override
+//    public void onBackPressed(){
+//        Toast.makeText(this, "Please Log Out to Return to Login Page", Toast.LENGTH_LONG)
+//                .show();
+//    }
     private void signOut() {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
+
         MainActivity.getGsiClient().signOut()
                 .addOnCompleteListener(this, new OnCompleteListener<Void>() {
                     @Override

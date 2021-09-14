@@ -18,11 +18,13 @@ import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -31,11 +33,23 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, LifecycleObserver {
     private static GoogleSignInClient gsiClient;
     private Boolean signedIn = false;
     private int RC_SIGN_IN = 777;
+    private static final String MyPrefs = "myPrefs";
+    private static final String UserKey = "sharedUsers";
+    private List<User> users;
+    private Intent nIntent;
+
+    private SharedPreferences sharedPreferences;
+    private int Position = 0;
 
 
     public static GoogleSignInClient getGsiClient() {
@@ -59,6 +73,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         signInButton.setSize(SignInButton.SIZE_STANDARD);
         signInButton.setColorScheme(SignInButton.COLOR_LIGHT);
 
+        sharedPreferences = this.getSharedPreferences(MyPrefs, Context.MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        // myObject - instance of MyObject
+        editor.putString("Class", getClass().toString());
+        editor.apply();
+
     }
 
     @Override
@@ -78,15 +99,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             intent.putExtra("UserName", account.getDisplayName());
             intent.putExtra("source", "Main");
             startActivity(intent);
+
+            finish();
         }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     public void onAppBackgrounded(){
         Context context = getApplicationContext();
+//        Class current_class = context.getApplicationContext().getCurrentActivity();
         Log.d("Main activity", "onAppBackgrounded: ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + context);
         //if () {
-        getNotification();
+//        Toast.makeText(context, "called notification", Toast.LENGTH_LONG).show();
+        String c = sharedPreferences.getString("Class", null);
+        getNotification(c);
         //}
     }
 
@@ -127,9 +153,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             updateUI(null);
         }
     }
-    private void getNotification() {
-        Context myContext = getApplicationContext();
-        Intent nIntent = getPackageManager().getLaunchIntentForPackage("com.example.getdetails");
+    private void getNotification(String c) {
+        //RetrieveUserData();
+        if (c.equals(FragmentActivity.class.toString())){
+            nIntent = new Intent(this, FragmentActivity.class);
+            nIntent.putExtra("imageUrl", "");
+            nIntent.putExtra("source", "Recycler");
+            nIntent.putExtra("Position", sharedPreferences.getInt("Position", 0));
+            Log.d("Frag Activity", "getNotification: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + c);
+        }
+        else {
+            Log.d("not a fragment", "getNotification:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + c);
+            Context myContext = getApplicationContext();
+//        Intent nIntent = new Intent(myContext, myContext.getClass());
+            nIntent = getPackageManager().getLaunchIntentForPackage("com.example.getdetails");
+        }
+//
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, nIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -150,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         NotificationCompat.Builder notification = new NotificationCompat.Builder(this, CHANNEL_ID);
         notification
                 .setSmallIcon(R.drawable.ic_android_black_24dp)
-                .setContentTitle("Notification")
+                .setContentTitle("My Contacts Notification")
                 .setContentText("Don't forget about me!")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
@@ -159,5 +198,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .build();
 
         notificationManager.notify(1, notification.build());
+    }
+    public void RetrieveUserData() {
+        String serializedObject = sharedPreferences.getString(UserKey, null);
+        if (serializedObject != null) {
+            Gson gson = new Gson();
+            Type type = new TypeToken<List<User>>() {
+            }.getType();
+            users = gson.fromJson(serializedObject, type);
+        }
+
     }
 }
