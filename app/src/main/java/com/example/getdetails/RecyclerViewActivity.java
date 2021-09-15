@@ -97,13 +97,10 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
             RetrieveUserData();
         }
 
-        SharedPreferences.Editor editor = sharedPreferences.edit();// myObject - instance of MyObject
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        // myObject - instance of MyObject
         editor.putString("Class", getClass().toString());
         editor.apply();
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        // myObject - instance of MyObject
-//        editor.putString("Class", getClass().toString());
-//        editor.apply();
 
             //
             cardView = findViewById(R.id.cardView);
@@ -146,6 +143,9 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
     @Override
     public void onStart(){
         super.onStart();
+//        SharedPreferences.Editor editor = sharedPreferences.edit();// myObject - instance of MyObject
+//        editor.putString("Class", getClass().toString());
+//        editor.apply();
     }
 
 

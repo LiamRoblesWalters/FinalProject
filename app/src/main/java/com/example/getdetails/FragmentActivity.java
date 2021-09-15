@@ -51,7 +51,6 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
         editor.putString("Class", getClass().toString());
         editor.apply();
 
-
         Bundle args = new Bundle();
         if (fragment == null) {
             fragment = new UserFragment();
@@ -89,7 +88,7 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
     @Override
     public void onPause(){
         super.onPause();
-//        SaveUserData();
+        SaveUserData();
     }
 
     @Override
