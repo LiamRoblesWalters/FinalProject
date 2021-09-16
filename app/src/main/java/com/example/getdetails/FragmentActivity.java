@@ -3,6 +3,7 @@ package com.example.getdetails;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ProcessLifecycleOwner;
 
 import android.content.Context;
 import android.content.Intent;
@@ -51,6 +52,7 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
         editor.putString("Class", getClass().toString());
         editor.apply();
 
+
         Bundle args = new Bundle();
         if (fragment == null) {
             fragment = new UserFragment();
@@ -65,6 +67,9 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
         transaction.commit();
 
         Position = getIntent().getIntExtra("Position", 2);
+
+        ProcessLifecycleOwner.get().getLifecycle().addObserver(new GlobalNotification(this, sharedPreferences));
+
     }
     @Override
     public void onStart(){
@@ -114,22 +119,26 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
             Picasso.with(this).load(uri).resize(500, 500).centerCrop().into(fragment.image);
             fragment.image.setVisibility(View.VISIBLE);
 
+//            SaveUserData();
+
         }
     }
     public void SaveUserData(){
+        RetrieveUserData();
         if (uriChanged == true) {
-            RetrieveUserData();
             users.get(Position).imageUri = "" + uri;
 
 
             uriChanged = false;
         }
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        String jsonUsers = gson.toJson(users);
 
-        editor.putString(UserKey, jsonUsers);
-        editor.apply();
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            Gson gson = new Gson();
+            String jsonUsers = gson.toJson(users);
+
+            editor.putString(UserKey, jsonUsers);
+            editor.apply();
+
     }
 //
     public void RetrieveUserData() {

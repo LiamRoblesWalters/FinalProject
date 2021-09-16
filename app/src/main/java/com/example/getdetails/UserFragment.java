@@ -49,8 +49,6 @@ public class UserFragment extends Fragment implements View.OnClickListener{
     private static final String MyPrefs = "myPrefs";
     private static final String UserKey = "sharedUsers";
     private static final String Info = "infoKey";
-    private static Uri uri = null;
-    private Boolean uriChanged = false;
     private Boolean textEdited = false;
     private static final int REQUEST_IMAGE_CAPTURE = 9;
     private static int Position = 0;
@@ -142,10 +140,12 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                 if (info[1].replace("Email", "").trim().length() < 3) {
                     if (sharedPreferences.getString(Info, "") == "") {
                         userInfo.setText("Name: " + users.get(Position).name);
-                        userInfo.setFocusableInTouchMode(true);
-                        email.setFocusableInTouchMode(true);
-                        address.setFocusableInTouchMode(true);
-                        saveInfo.setVisibility(View.VISIBLE);
+                        email.setText("Email: " + users.get(Position).email);
+                        address.setText("Street: " + users.get(Position).address.street);
+//                        userInfo.setFocusableInTouchMode(true);
+//                        email.setFocusableInTouchMode(true);
+//                        address.setFocusableInTouchMode(true);
+//                        saveInfo.setVisibility(View.VISIBLE);
                     } else {
                         userInfo.setText("Name: " + users.get(Position).name);
                         email.setText("Email: " + users.get(Position).email);
@@ -193,7 +193,7 @@ public class UserFragment extends Fragment implements View.OnClickListener{
 
                 textEdited = true;
 
-//                SaveUserData();
+                SaveUserData();
 
 //                SharedPreferences.Editor editor = sharedPreferences.edit();
 //                editor.putString(Info, personalInfo);
@@ -219,7 +219,7 @@ public class UserFragment extends Fragment implements View.OnClickListener{
     @Override
     public void onPause(){
         super.onPause();
-        SaveUserData();
+//        SaveUserData();
     }
 
     public void showCameraDialog() {
@@ -254,11 +254,12 @@ public class UserFragment extends Fragment implements View.OnClickListener{
 //        }
 //    }
     public void SaveUserData(){
-        if (uriChanged == true) {
-            users.get(Position).imageUri = "" + uri;
-
-            uriChanged = false;
-        }
+//        RetrieveUserData();
+//        if (uriChanged == true) {
+//            users.get(Position).imageUri = "" + uri;
+//
+//            uriChanged = false;
+//        }
         if (textEdited == true) {
             users.get(Position).name = userInfo.getText().toString().replace("Name: ", "").trim
                     ();
@@ -268,14 +269,14 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                     ();
 
             textEdited = false;
+
         }
         SharedPreferences.Editor editor = sharedPreferences.edit();
         Gson gson = new Gson();
         String jsonUsers = gson.toJson(users);
 
         editor.putString(UserKey, jsonUsers);
-        editor.apply();
-
+        editor.commit();
     }
 //
     public void RetrieveUserData() {

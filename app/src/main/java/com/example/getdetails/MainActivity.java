@@ -39,12 +39,13 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, LifecycleObserver {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private static GoogleSignInClient gsiClient;
     private Boolean signedIn = false;
     private int RC_SIGN_IN = 777;
     private static final String MyPrefs = "myPrefs";
     private static final String UserKey = "sharedUsers";
+    private String c;
     private List<User> users;
     private Intent nIntent;
 
@@ -60,8 +61,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
 
         findViewById(R.id.sign_in_button).setOnClickListener(this);
 
@@ -79,6 +78,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // myObject - instance of MyObject
         editor.putString("Class", getClass().toString());
         editor.apply();
+        ProcessLifecycleOwner.get().getLifecycle().addObserver(new GlobalNotification(this, sharedPreferences));
+
+//        String c = sharedPreferences.getString("Class", null);
 
     }
 
@@ -104,17 +106,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    public void onAppBackgrounded(){
-        Context context = getApplicationContext();
-//        Class current_class = context.getApplicationContext().getCurrentActivity();
-        Log.d("Main activity", "onAppBackgrounded: ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + context);
-        //if () {
+//    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+//    private void onAppBackgrounded(){
+//        Context context = getApplicationContext();
+////        Class current_class = context.getApplicationContext().getCurrentActivity();
+//        Log.d("Main activity", "onAppBackgrounded: ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + context);
+//        //if () {
 //        Toast.makeText(context, "called notification", Toast.LENGTH_LONG).show();
-        String c = sharedPreferences.getString("Class", null);
-        getNotification(c);
-        //}
-    }
+//        getNotification();
+//        //}
+//    }
 
 
     @Override
@@ -153,52 +154,57 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             updateUI(null);
         }
     }
-    private void getNotification(String c) {
-        //RetrieveUserData();
-        if (c.equals(FragmentActivity.class.toString())){
-            nIntent = new Intent(this, FragmentActivity.class);
-            nIntent.putExtra("imageUrl", "");
-            nIntent.putExtra("source", "Recycler");
-            nIntent.putExtra("Position", sharedPreferences.getInt("Position", 0));
-            Log.d("Frag Activity", "getNotification: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + c);
-        }
-        else {
-            Log.d("not a fragment", "getNotification:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + c);
-            Context myContext = getApplicationContext();
-//        Intent nIntent = new Intent(myContext, myContext.getClass());
-            nIntent = getPackageManager().getLaunchIntentForPackage("com.example.getdetails");
-        }
+//    private void getNotification() {
+//        String c = sharedPreferences.getString("Class", null);
+//        //RetrieveUserData();
+//        if (c.equals(FragmentActivity.class.toString())){
+//            nIntent = new Intent(this, FragmentActivity.class);
+//            nIntent.putExtra("imageUrl", "");
+//            nIntent.putExtra("source", "Recycler");
+//            nIntent.putExtra("Position", sharedPreferences.getInt("Position", 0));
+//            Log.d("Frag Activity", "getNotification: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + c);
+//        }
+//        else if (c.equals(RecyclerViewActivity.class.toString())){
+//            nIntent = new Intent(this, RecyclerViewActivity.class);
 //
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, nIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        String CHANNEL_ID = "777";
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            NotificationChannel channel1 = new NotificationChannel(
-                    CHANNEL_ID, "Channel 1",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-
-            channel1.setDescription("Don't forget about me!");
-
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(channel1);
-        }
-
-        NotificationCompat.Builder notification = new NotificationCompat.Builder(this, CHANNEL_ID);
-        notification
-                .setSmallIcon(R.drawable.ic_android_black_24dp)
-                .setContentTitle("My Contacts Notification")
-                .setContentText("Don't forget about me!")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-                .build();
-
-        notificationManager.notify(1, notification.build());
-    }
+//        }
+//        else {
+//            Log.d("not a fragment", "getNotification:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + c);
+//            Context myContext = getApplicationContext();
+////        Intent nIntent = new Intent(myContext, myContext.getClass());
+//            nIntent = getPackageManager().getLaunchIntentForPackage("com.example.getdetails");
+//        }
+////
+//        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, nIntent,
+//                PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//        String CHANNEL_ID = "777";
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+//            NotificationChannel channel1 = new NotificationChannel(
+//                    CHANNEL_ID, "Channel 1",
+//                    NotificationManager.IMPORTANCE_HIGH
+//            );
+//
+//            channel1.setDescription("Don't forget about me!");
+//
+//            NotificationManager manager = getSystemService(NotificationManager.class);
+//            manager.createNotificationChannel(channel1);
+//        }
+//
+//        NotificationCompat.Builder notification = new NotificationCompat.Builder(this, CHANNEL_ID);
+//        notification
+//                .setSmallIcon(R.drawable.ic_android_black_24dp)
+//                .setContentTitle("My Contacts Notification")
+//                .setContentText("Don't forget about me!")
+//                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+//                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+//                .setContentIntent(pendingIntent)
+//                .setAutoCancel(true)
+//                .build();
+//
+//        notificationManager.notify(1, notification.build());
+//    }
     public void RetrieveUserData() {
         String serializedObject = sharedPreferences.getString(UserKey, null);
         if (serializedObject != null) {

@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -97,10 +98,13 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
             RetrieveUserData();
         }
 
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        // myObject - instance of MyObject
+        SharedPreferences.Editor editor = sharedPreferences.edit();// myObject - instance of MyObject
         editor.putString("Class", getClass().toString());
         editor.apply();
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        // myObject - instance of MyObject
+//        editor.putString("Class", getClass().toString());
+//        editor.apply();
 
             //
             cardView = findViewById(R.id.cardView);
@@ -136,16 +140,14 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
 
             recyclerView.setAdapter(recyclerViewAdapter);
 
+        ProcessLifecycleOwner.get().getLifecycle().addObserver(new GlobalNotification(this, sharedPreferences));
 
 
-        }
+    }
 
     @Override
     public void onStart(){
         super.onStart();
-//        SharedPreferences.Editor editor = sharedPreferences.edit();// myObject - instance of MyObject
-//        editor.putString("Class", getClass().toString());
-//        editor.apply();
     }
 
 
@@ -176,6 +178,7 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
 
 
     public void SaveUserData(){
+        RetrieveUserData();
         SharedPreferences.Editor editor = sharedPreferences.edit();
         Gson gson = new Gson();
         String jsonUsers = gson.toJson(users);
