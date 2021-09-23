@@ -62,7 +62,6 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
     private static final String MyPrefs = "myPrefs";
     private SharedPreferences sharedPreferences;
     public static UserViewModel userViewModel;
-    private static boolean firstLogin = false;
     private AlarmManager alarm;
     private PendingIntent alarmIntent;
 
@@ -89,7 +88,7 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
 
         if (getIntent().getExtras() != null && getIntent().getStringExtra("source").equals("Main")) {
 
-            if (firstLogin == false) {
+            if (sharedPreferences.getString("FirstLogin", null) == null) {
 
                 User newUser = new User(account.getDisplayName());
                 newUser.imageUri = String.format("https://robohash.org/%s?set=set5", newUser.name);
@@ -105,7 +104,9 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
                     e.printStackTrace();
                     Toast.makeText(this, "Failed", Toast.LENGTH_LONG);
                 }
-                firstLogin = true;
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("FirstLogin", "first_login");
+                editor.apply();
             }
         }
 
