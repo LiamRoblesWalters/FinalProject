@@ -4,17 +4,25 @@ import static android.app.Activity.RESULT_OK;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -38,26 +46,21 @@ import java.util.List;
  */
 public class UserFragment extends Fragment implements View.OnClickListener{
 
-    private EditText userInfo;
+    public EditText userInfo;
     ImageView image;
-    private EditText email;
-    private EditText address;
+    EditText email;
+    EditText address;
     private Button saveInfo;
-    private Button editInfo;
     private String[] info;
     private List<User> users;
     private static final String MyPrefs = "myPrefs";
-    private static final String UserKey = "sharedUsers";
     private static final String Info = "infoKey";
-    private Boolean textEdited = false;
-    private static final int REQUEST_IMAGE_CAPTURE = 9;
+    Boolean textEdited = false;
     private static int Position = 0;
+
 
     private SharedPreferences sharedPreferences;
 
-//    public ImageView getImage() {
-//        return image;
-//    }
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -93,13 +96,7 @@ public class UserFragment extends Fragment implements View.OnClickListener{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
-//        }
-        //setContentView(R.layout.activity_user_list);
-
-
+        setHasOptionsMenu(true);
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -124,11 +121,13 @@ public class UserFragment extends Fragment implements View.OnClickListener{
         email = getActivity().findViewById(R.id.email_fragment);
         address = getActivity().findViewById(R.id.address_fragment);
         saveInfo = getActivity().findViewById(R.id.fragment_save_info);
-        editInfo = getActivity().findViewById(R.id.edit_button);
 
         sharedPreferences = getActivity().getSharedPreferences(MyPrefs, Context.MODE_PRIVATE);
+        users = RecyclerViewActivity.userViewModel.getAllUsers().getValue();
 
-        RetrieveUserData();
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(new myBroadcastReceiver(),
+                new IntentFilter("userFilter"));
+//
 
         if (getArguments() != null) {
             String source = getArguments().getString("source");
@@ -142,10 +141,6 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                         userInfo.setText("Name: " + users.get(Position).name);
                         email.setText("Email: " + users.get(Position).email);
                         address.setText("Street: " + users.get(Position).address.street);
-//                        userInfo.setFocusableInTouchMode(true);
-//                        email.setFocusableInTouchMode(true);
-//                        address.setFocusableInTouchMode(true);
-//                        saveInfo.setVisibility(View.VISIBLE);
                     } else {
                         userInfo.setText("Name: " + users.get(Position).name);
                         email.setText("Email: " + users.get(Position).email);
@@ -169,133 +164,87 @@ public class UserFragment extends Fragment implements View.OnClickListener{
 
 
         image.setOnClickListener(this);
-//
-        editInfo.setOnClickListener(this);
-
         saveInfo.setOnClickListener(this);
 
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        getActivity().getMenuInflater().inflate(R.menu.user_menu, menu);
     }
 
     @Override
     public void onClick(View view){
         switch (view.getId()){
             case R.id.fragment_image:
+                Intent broadcastIntent = new Intent("userFilter");
+                broadcastIntent.putExtra("UserName", userInfo.getText().toString());
+                LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(broadcastIntent);
                 showCameraDialog();
                 break;
-
+//
             case R.id.fragment_save_info:
-                //tring personalInfo = String.format("%s\nEmail: %s\nAddress: %s", userInfo.getText().toString(), email.getText().toString(), address.getText().toString());
                 userInfo.setFocusable(false);
                 email.setFocusable(false);
                 address.setFocusable(false);
                 saveInfo.setVisibility(View.GONE);
-                editInfo.setVisibility(View.VISIBLE);
 
                 textEdited = true;
 
-                SaveUserData();
-
-//                SharedPreferences.Editor editor = sharedPreferences.edit();
-//                editor.putString(Info, personalInfo);
-//                editor.apply();
-//                userInfo.setText(sharedPreferences.getString(Info, ""));
                 break;
-
-            case R.id.edit_button:
-                saveInfo.setVisibility(View.VISIBLE);
-                editInfo.setVisibility(View.GONE);
-                userInfo.setFocusableInTouchMode(true);
-                email.setFocusableInTouchMode(true);
-                address.setFocusableInTouchMode(true);
-
-                break;
-
-
+//
+//
             default:
                 throw new IllegalStateException("Unexpected value: " + view.getId());
         }
     }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()) {
+
+            case R.id.edit:
+                saveInfo.setVisibility(View.VISIBLE);
+                userInfo.setFocusableInTouchMode(true);
+                email.setFocusableInTouchMode(true);
+                address.setFocusableInTouchMode(true);
+
+                return true;
+
+            case R.id.notes:
+                Intent writingIntent = new Intent(getActivity(), ContactNotes.class);
+                writingIntent.putExtra("UserName", userInfo.getText().toString().replace("Name:", "").trim());
+                startActivity(writingIntent);
+                return true;
+
+            case R.id.send_message:
+                Intent messageIntent = new Intent(Intent.ACTION_SEND);
+                messageIntent.putExtra(Intent.EXTRA_TEXT, "Here's a message");
+                messageIntent.setData(Uri.parse("mailto:"));
+                String[] address = {email.getText().toString().replace("Email:", "").trim()};
+                messageIntent.putExtra(Intent.EXTRA_EMAIL, address);
+                messageIntent.setType("text/plain");
+                Intent chooser = Intent.createChooser(messageIntent, "Send Email");
+                startActivity(chooser);
+                return true;
+
+            default:
+                return super.onContextItemSelected(item);
+        }
+    }
+
+
 
     @Override
     public void onPause(){
         super.onPause();
-//        SaveUserData();
+//
     }
 
     public void showCameraDialog() {
         // Create an instance of the dialog fragment and show it
         DialogFragment dialog = new CameraAction();
         dialog.show(getParentFragmentManager(), "NoticeDialogFragment");
-    }
-
-//    @Override
-//    public void onDialogPositiveClick(DialogFragment dialog) {
-//        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
-//
-//    }
-//
-//    @Override
-//    public void onDialogNegativeClick(DialogFragment dialog) {
-//        Toast.makeText(getActivity(), "Camera Access Denied", Toast.LENGTH_LONG);
-//    }
-//
-//    @Override
-//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-//            Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-//            uri = getImageUri(getActivity(), bitmap);
-//            uriChanged = true;
-//
-//            Picasso.with(getActivity()).load(uri).resize(500, 500).centerCrop().into(image);
-//            image.setVisibility(View.VISIBLE);
-//
-//        }
-//    }
-    public void SaveUserData(){
-//        RetrieveUserData();
-//        if (uriChanged == true) {
-//            users.get(Position).imageUri = "" + uri;
-//
-//            uriChanged = false;
-//        }
-        if (textEdited == true) {
-            users.get(Position).name = userInfo.getText().toString().replace("Name: ", "").trim
-                    ();
-            users.get(Position).email = email.getText().toString().replace("Email: ", "").trim
-                    ();
-            users.get(Position).address.street = address.getText().toString().replace("Street: ", "").trim
-                    ();
-
-            textEdited = false;
-
-        }
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        String jsonUsers = gson.toJson(users);
-
-        editor.putString(UserKey, jsonUsers);
-        editor.commit();
-    }
-//
-    public void RetrieveUserData() {
-        String serializedObject = sharedPreferences.getString(UserKey, null);
-        if (serializedObject != null) {
-            Gson gson = new Gson();
-            Type type = new TypeToken<List<User>>() {
-            }.getType();
-            users = gson.fromJson(serializedObject, type);
-        }
-
-    }
-//
-//
-    public Uri getImageUri(Context inContext, Bitmap inImage) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
-        return Uri.parse(path);
     }
 
 }

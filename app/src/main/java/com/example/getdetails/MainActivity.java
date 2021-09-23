@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ProcessLifecycleOwner;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -22,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -52,6 +54,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SharedPreferences sharedPreferences;
     private int Position = 0;
 
+    private AlarmManager alarm;
+    private PendingIntent alarmIntent;
+
 
     public static GoogleSignInClient getGsiClient() {
         return gsiClient;
@@ -78,11 +83,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // myObject - instance of MyObject
         editor.putString("Class", getClass().toString());
         editor.apply();
-        ProcessLifecycleOwner.get().getLifecycle().addObserver(new GlobalNotification(this, sharedPreferences));
 
 //        String c = sharedPreferences.getString("Class", null);
 
+
     }
+
 
     @Override
     public void onStart(){

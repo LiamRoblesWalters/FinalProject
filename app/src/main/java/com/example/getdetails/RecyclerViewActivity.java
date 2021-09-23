@@ -6,20 +6,27 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ProcessLifecycleOwner;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -46,79 +53,76 @@ import okhttp3.ResponseBody;
 
 public class RecyclerViewActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private static final int FRAGMENT_REQUEST = 7;
     private CardView cardView;
-    private Button logOut;
-    private List<User> users = new ArrayList<>();
+    private List<User> users;
     private RecyclerView recyclerView;
     private RecyclerViewAdapter recyclerViewAdapter;
     private final OkHttpClient client = new OkHttpClient();
-    private String name;
     private static final String MyPrefs = "myPrefs";
-    private static final String UserKey = "sharedUsers";
     private SharedPreferences sharedPreferences;
-    private UserFragment fragment;
+    public static UserViewModel userViewModel;
+    private static boolean firstLogin = false;
+    private AlarmManager alarm;
+    private PendingIntent alarmIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recycler_view);
 
+
         sharedPreferences = getSharedPreferences(MyPrefs, Context.MODE_PRIVATE);
 
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
-        if (account != null){
-            name = account.getDisplayName();
-        }
-        logOut = findViewById(R.id.log_out_button);
-        logOut.setOnClickListener(this);
+
+        users = new ArrayList<>();
+
+        userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        userViewModel.getAllUsers().observe(this, new Observer<List<User>>() {
+            @Override
+            public void onChanged(List<User> users) {
+                //update RecyclerView
+                recyclerViewAdapter.setUsers(users);
+            }
+        });
 
         if (getIntent().getExtras() != null && getIntent().getStringExtra("source").equals("Main")) {
-            //name = getIntent().getStringExtra("UserName");
-            User newUser = new User(name);
-            users.add(newUser);
-            try {
-                run();
 
-                if (users != null) {
+            if (firstLogin == false) {
 
-                    for (User user : users) {
-                        user.imageUri = String.format("https://robohash.org/%s?set=set5", user.name);
+                User newUser = new User(account.getDisplayName());
+                newUser.imageUri = String.format("https://robohash.org/%s?set=set5", newUser.name);
+                newUser.id = -77;
 
-                    }
+                users.add(newUser);
+                userViewModel.insert(newUser);
+                try {
+                    run();
 
-                } else {
-                    Toast.makeText(this, "Something weird happened", Toast.LENGTH_LONG);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "Failed", Toast.LENGTH_LONG);
                 }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(this, "Failed", Toast.LENGTH_LONG);
+                firstLogin = true;
             }
-        } else {
-            RetrieveUserData();
         }
+
 
         SharedPreferences.Editor editor = sharedPreferences.edit();// myObject - instance of MyObject
         editor.putString("Class", getClass().toString());
         editor.apply();
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        // myObject - instance of MyObject
-//        editor.putString("Class", getClass().toString());
-//        editor.apply();
-
-            //
-            cardView = findViewById(R.id.cardView);
-            recyclerView = findViewById(R.id.recycler_view);
-            recyclerView.setHasFixedSize(true);
-            recyclerView.setLayoutManager(new LinearLayoutManager(this)); // lets recycler view set up its layout
+//
+        cardView = findViewById(R.id.cardView);
+        recyclerView = findViewById(R.id.recycler_view);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this)); // lets recycler view set up its layout
         RecyclerViewAdapter.ClickListener listener = new RecyclerViewAdapter.ClickListener() {
             @Override
             public void onItemClicked(RecyclerViewAdapter.ViewHolder viewHolder) {
                 Intent args = new Intent(getApplicationContext(), FragmentActivity.class);
-//                if (fragment == null) {
-//                    fragment = new UserFragment();
-//                }
-//                args.putExtra("UserInfo", viewHolder.info);
+//
                 args.putExtra("imageUrl", viewHolder.imageUrl);
                 args.putExtra("source", "Recycler");
                 args.putExtra("Position", viewHolder.Position);
@@ -126,91 +130,75 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
                 editor.putInt("Position", viewHolder.Position);
                 editor.putString("UserInfo", viewHolder.info);
                 editor.apply();
-//                fragment.setArguments(args);
-//                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//                transaction.replace(R.id.fragment_container_view, fragment);
-//                transaction.commit();
-                startActivity(args);
+
+                startActivityForResult(args, FRAGMENT_REQUEST);
 
                 finish();
             }
         };
 
-            recyclerViewAdapter = new RecyclerViewAdapter(this, users, listener); // instantiate recycler view adapter
 
-            recyclerView.setAdapter(recyclerViewAdapter);
+
+        recyclerViewAdapter = new RecyclerViewAdapter(this, users, listener); // instantiate recycler view adapter
+
+        recyclerView.setAdapter(recyclerViewAdapter);
 
         ProcessLifecycleOwner.get().getLifecycle().addObserver(new GlobalNotification(this, sharedPreferences));
 
+        alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        Intent newIntent = new Intent(this, AlarmReceiver.class);
+        alarmIntent = PendingIntent.getBroadcast(this, 0, newIntent, 0);
+        alarm.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 10, 60*1000, alarmIntent);
+
 
     }
 
+
+
     @Override
-    public void onStart(){
+    public void onStart() {
         super.onStart();
+
+        IntentFilter airplaneFilter = new IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        registerReceiver(new myBroadcastReceiver(), airplaneFilter);
     }
 
 
 
-//            public void getFragment(RecyclerViewAdapter.ViewHolder viewHolder) {
-//                Bundle args = new Bundle();
-//                UserFragment fragment = new UserFragment();
-//                args.putString("UserInfo", viewHolder.info);
-//                args.putString("imageUrl", viewHolder.imageUrl);
-//                args.putString("source", "Recycler");
-//                args.putInt("Position", viewHolder.Position);
-//                fragment.setArguments(args);
-//                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//                transaction.replace(R.id.recycler_view_layout, fragment);
-//                transaction.commit();
-//            }
 
-
-
-
-
-        @Override
-        public void onPause(){
-            super.onPause();
-
-            SaveUserData();
-        }
-
-
-    public void SaveUserData(){
-        RetrieveUserData();
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        String jsonUsers = gson.toJson(users);
-
-        editor.putString(UserKey, jsonUsers);
-        editor.apply();
-
-    }
-
-    public void RetrieveUserData() {
-        String serializedObject = sharedPreferences.getString(UserKey, null);
-        if (serializedObject != null) {
-            Gson gson = new Gson();
-            Type type = new TypeToken<List<User>>() {
-            }.getType();
-            users = gson.fromJson(serializedObject, type);
-        }
-
-    }
     @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
+    public void onPause() {
+        super.onPause();
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.recyclerview_menu, menu);
+        return true;
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()) {
             // ...
-            case R.id.log_out_button:
+            case R.id.log_out:
                 signOut();
                 revokeAccess();
-                break;
+                return true;
             // ...
+            case R.id.show_map:
+                Intent mapIntent = new Intent(this, MapsActivity.class);
+                startActivity(mapIntent);
+                return true;
+
+            default:
+                return super.onContextItemSelected(item);
         }
     }
 
-//    @Override
+    //    @Override
 //    public void onBackPressed(){
 //        Toast.makeText(this, "Please Log Out to Return to Login Page", Toast.LENGTH_LONG)
 //                .show();
@@ -227,6 +215,7 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
                     }
                 });
     }
+
     private void revokeAccess() {
         MainActivity.getGsiClient().revokeAccess()
                 .addOnCompleteListener(this, new OnCompleteListener<Void>() {
@@ -277,12 +266,18 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void getUsers(User[] names) {
-        for (int i = 0; i < names.length; i++){
+        for (int i = 0; i < names.length; i++) {
             User user = names[i];
             user.imageUri = String.format("https://robohash.org/%s?set=set5", user.name);
             users.add(user);
+            userViewModel.insert(user);
 
         }
+
+    }
+
+    @Override
+    public void onClick(View view) {
 
     }
 }

@@ -66,6 +66,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     }
 
+    public void setUsers(List<User> users){
+        this.users = users;
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getItemCount() {
         return users.size();
