@@ -43,6 +43,7 @@ public class ContactNotes extends AppCompatActivity {
     private String userName;
     private static final String MyPrefs = "myPrefs";
     private SharedPreferences sharedPreferences;
+    private String operation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,16 +69,21 @@ public class ContactNotes extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.save_notes:
+                operation = "write";
                 checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, WRITE_CODE);
+
                 return true;
 
             case R.id.read_notes:
-
+                operation = "read";
                 checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, READ_CODE);
+
                 return true;
 
             case R.id.add_image:
-                chooseImage();
+                operation = "photo";
+                checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, READ_CODE);
+
                 return true;
 
             default:
@@ -142,9 +148,17 @@ public class ContactNotes extends AppCompatActivity {
         else {
             Toast.makeText(this, "Permission already granted", Toast.LENGTH_SHORT).show();
             if (permission == Manifest.permission.WRITE_EXTERNAL_STORAGE) {
-                writeFile();
+                if (operation.equals("write")) {
+                    writeFile();
+                }else{
+                    chooseImage();
+                }
             } else{
-                readFile();
+                if (operation.equals("read")) {
+                    readFile();
+                } else{
+                    chooseImage();
+                }
             }
         }
     }
@@ -159,8 +173,11 @@ public class ContactNotes extends AppCompatActivity {
 
             // Checking whether user granted the permission or not.
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                writeFile();
+                if (operation.equals("write")) {
+                    writeFile();
+                }else{
+                    chooseImage();
+                }
             }
             else {
                 Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
@@ -169,7 +186,11 @@ public class ContactNotes extends AppCompatActivity {
         else if (requestCode == READ_CODE) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if(operation.equals("read")) {
                     readFile();
+                } else{
+                    chooseImage();
+                }
             }
             else {
                 Toast.makeText(this, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
@@ -177,11 +198,10 @@ public class ContactNotes extends AppCompatActivity {
         }
     }
     public void chooseImage(){
-        Intent imageIntent = new Intent();
-        imageIntent.setType("image/*");
-        imageIntent.setAction(Intent.ACTION_GET_CONTENT);
-
-        startActivityForResult(Intent.createChooser(imageIntent, "Select Photo"), SELECT_PHOTO);
+            Intent imageIntent = new Intent();
+            imageIntent.setType("image/*");
+            imageIntent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(Intent.createChooser(imageIntent, "Select Photo"), SELECT_PHOTO);
     }
 
     @Override
