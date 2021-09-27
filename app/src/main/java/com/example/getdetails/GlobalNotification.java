@@ -20,7 +20,7 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
-public class GlobalNotification implements LifecycleObserver{
+public class GlobalNotification implements LifecycleObserver {
     private Intent nIntent;
     private SharedPreferences sharedPreferences;
     private Context context;
@@ -31,7 +31,7 @@ public class GlobalNotification implements LifecycleObserver{
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    public void onAppBackgrounded(){
+    public void onAppBackgrounded() {
 //        Class current_class = context.getApplicationContext().getCurrentActivity();
         Log.d("Main activity", "onAppBackgrounded: ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + context);
         //if () {

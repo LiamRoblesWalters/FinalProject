@@ -58,8 +58,9 @@ public class ContactNotes extends AppCompatActivity {
         photoPic = findViewById(R.id.photos_pic);
         userName = getIntent().getStringExtra("UserName");
     }
+
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.notes_menu, menu);
         return true;
 
@@ -67,7 +68,7 @@ public class ContactNotes extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.save_notes:
                 operation = "write";
                 checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, WRITE_CODE);
@@ -91,14 +92,14 @@ public class ContactNotes extends AppCompatActivity {
         }
     }
 
-    public void writeFile(){
+    public void writeFile() {
 
         try {
             File path = Environment.getExternalStorageDirectory();
             File dir = new File(path.getAbsolutePath() + "/Documents");
             dir.mkdirs();
             File myUserFile = new File(dir, userName + "myUserNotes.txt");
-            if (!myUserFile.exists()){
+            if (!myUserFile.exists()) {
                 myUserFile.createNewFile();
             }
             FileOutputStream fos = new FileOutputStream(myUserFile);
@@ -106,28 +107,27 @@ public class ContactNotes extends AppCompatActivity {
             fos.close();
             contactNotes.setText("");
             Toast.makeText(this, "Did I get here?", Toast.LENGTH_LONG).show();
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             Toast.makeText(this, "I got an error here", Toast.LENGTH_LONG).show();
         }
 
     }
 
-    public void readFile(){
+    public void readFile() {
         String notes = "";
         try {
             File path = Environment.getExternalStorageDirectory();
             File dir = new File(path.getAbsolutePath() + "/Documents");
             dir.mkdirs();
             File myUserFile = new File(dir, userName + "myUserNotes.txt");
-            if (!myUserFile.exists()){
+            if (!myUserFile.exists()) {
                 myUserFile.createNewFile();
             }
             FileInputStream fis = new FileInputStream(myUserFile);
             DataInputStream dis = new DataInputStream(fis);
             BufferedReader reader = new BufferedReader(new InputStreamReader(dis));
             String line;
-            while ((line = reader.readLine()) != null){
+            while ((line = reader.readLine()) != null) {
                 notes = notes + "\n" + line;
             }
             contactNotes.setText(notes);
@@ -139,34 +139,33 @@ public class ContactNotes extends AppCompatActivity {
 
 
     }
-    public void checkPermission(String permission, int requestCode)
-    {
+
+    public void checkPermission(String permission, int requestCode) {
         // Checking if permission is not granted
         if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(this, new String[] { permission }, requestCode);
-        }
-        else {
+            ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
+        } else {
             Toast.makeText(this, "Permission already granted", Toast.LENGTH_SHORT).show();
             if (permission == Manifest.permission.WRITE_EXTERNAL_STORAGE) {
                 if (operation.equals("write")) {
                     writeFile();
-                }else{
+                } else {
                     chooseImage();
                 }
-            } else{
+            } else {
                 if (operation.equals("read")) {
                     readFile();
-                } else{
+                } else {
                     chooseImage();
                 }
             }
         }
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
-                                           @NonNull int[] grantResults)
-    {
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == WRITE_CODE) {
@@ -175,47 +174,45 @@ public class ContactNotes extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (operation.equals("write")) {
                     writeFile();
-                }else{
+                } else {
                     chooseImage();
                 }
-            }
-            else {
+            } else {
                 Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
             }
-        }
-        else if (requestCode == READ_CODE) {
+        } else if (requestCode == READ_CODE) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if(operation.equals("read")) {
+                if (operation.equals("read")) {
                     readFile();
-                } else{
+                } else {
                     chooseImage();
                 }
-            }
-            else {
+            } else {
                 Toast.makeText(this, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
             }
         }
     }
-    public void chooseImage(){
-            Intent imageIntent = new Intent();
-            imageIntent.setType("image/*");
-            imageIntent.setAction(Intent.ACTION_GET_CONTENT);
-            startActivityForResult(Intent.createChooser(imageIntent, "Select Photo"), SELECT_PHOTO);
+
+    public void chooseImage() {
+        Intent imageIntent = new Intent();
+        imageIntent.setType("image/*");
+        imageIntent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(imageIntent, "Select Photo"), SELECT_PHOTO);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode == RESULT_OK && requestCode == SELECT_PHOTO){
+        if (resultCode == RESULT_OK && requestCode == SELECT_PHOTO) {
             Toast.makeText(this, "We're in!", Toast.LENGTH_LONG)
                     .show();
             Uri photoUri = data.getData();
-            if (photoUri != null){
+            if (photoUri != null) {
                 photoPic.setImageURI(photoUri);
                 photoPic.setVisibility(View.VISIBLE);
             }
-        } else{
+        } else {
             Toast.makeText(this, "Something's wrong here", Toast.LENGTH_LONG)
                     .show();
         }

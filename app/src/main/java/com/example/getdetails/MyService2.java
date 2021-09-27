@@ -22,28 +22,24 @@ public class MyService2 extends Service {
     private String MyPrefs = "myPrefs";
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId){
+    public int onStartCommand(Intent intent, int flags, int startId) {
         String input = intent.getStringExtra("Message");
         String c = sharedPreferences.getString("Class", null);
         //RetrieveUserData();
-        if (c.equals(FragmentActivity.class.toString())){
+        if (c.equals(FragmentActivity.class.toString())) {
             nIntent = new Intent(context, FragmentActivity.class);
             nIntent.putExtra("imageUrl", "");
             nIntent.putExtra("source", "Recycler");
             nIntent.putExtra("Position", sharedPreferences.getInt("Position", 0));
             Log.d("Frag Activity", "getNotification: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + c);
-        }
-        else if (c.equals(RecyclerViewActivity.class.toString())){
+        } else if (c.equals(RecyclerViewActivity.class.toString())) {
             nIntent = new Intent(context, RecyclerViewActivity.class);
 
-        }
-        else if (c.equals(ContactNotes.class.toString())){
+        } else if (c.equals(ContactNotes.class.toString())) {
             nIntent = new Intent(context, ContactNotes.class);
-        }
-        else if (c.equals(MapsActivity.class.toString())){
+        } else if (c.equals(MapsActivity.class.toString())) {
             nIntent = new Intent(context, MapsActivity.class);
-        }
-        else {
+        } else {
             Log.d("not a fragment", "getNotification:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + c);
             nIntent = context.getPackageManager().getLaunchIntentForPackage("com.example.getdetails");
         }
@@ -52,7 +48,7 @@ public class MyService2 extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         String CHANNEL_ID = "777";
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel1 = new NotificationChannel(
                     CHANNEL_ID, "Channel 1",
                     NotificationManager.IMPORTANCE_HIGH
@@ -82,7 +78,7 @@ public class MyService2 extends Service {
     }
 
     @Override
-    public void onCreate(){
+    public void onCreate() {
         super.onCreate();
         sharedPreferences = getSharedPreferences(MyPrefs, Context.MODE_PRIVATE);
         context = this;

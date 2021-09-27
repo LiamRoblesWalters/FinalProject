@@ -40,6 +40,7 @@ public abstract class UserRoomDatabase extends RoomDatabase {
         }
         return INSTANCE;
     }
+
     private static RoomDatabase.Callback sRoomDatabaseCallback = new RoomDatabase.Callback() {
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {
@@ -70,18 +71,20 @@ public abstract class UserRoomDatabase extends RoomDatabase {
 //                protected void doInBackground(Void... voids){
 //
 //                }
-            }
+        }
 
     };
 }
-class Converter{
+
+class Converter {
     @TypeConverter
-    public static Address getAddress(String address){
+    public static Address getAddress(String address) {
 //        return street == null? null : new Address(street);
         return new Gson().fromJson(address, Address.class);
     }
+
     @TypeConverter
-    public static String addressToString(Address address){
+    public static String addressToString(Address address) {
 //        return address == null? null : address.street + address.geo;
         return new Gson().toJson(address);
 

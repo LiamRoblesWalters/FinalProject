@@ -9,16 +9,15 @@ public class myBroadcastReceiver extends BroadcastReceiver {
     @Override
 
     public void onReceive(Context context, Intent intent) {
-        if (intent.getStringExtra("UserName") != null){
+        if (intent.getStringExtra("UserName") != null) {
             Toast.makeText(context, intent.getStringExtra("UserName"), Toast.LENGTH_LONG)
                     .show();
-        }
-        else {
+        } else {
             boolean AirplanModeOn = intent.getBooleanExtra("state", false);
             if (AirplanModeOn) {
                 Toast.makeText(context, "DEVICE IN AIRPLANE MODE", Toast.LENGTH_LONG)
                         .show();
-            } else{
+            } else {
                 Toast.makeText(context, "Airplane Mode Now Off", Toast.LENGTH_LONG)
                         .show();
             }

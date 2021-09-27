@@ -13,6 +13,7 @@ import androidx.room.PrimaryKey;
 import androidx.room.TypeConverter;
 
 import java.nio.file.Path;
+
 @Entity(tableName = "user_table")
 public class User {
     @PrimaryKey(autoGenerate = true)
@@ -22,7 +23,10 @@ public class User {
     public String email;
     public Address address;
     public String imageUri = "";
-    public Address getAddress() { return address; }
+
+    public Address getAddress() {
+        return address;
+    }
 
     public User(String name) {
         this.name = name;
@@ -30,7 +34,7 @@ public class User {
         this.address = new Address("street", new Geo("0", "0"));
     }
 
-    public void replace(User user){
+    public void replace(User user) {
         this.name = user.name;
         this.email = user.email;
         this.imageUri = user.imageUri;
@@ -71,11 +75,12 @@ class Address {
 
 
 }
-class Geo{
+
+class Geo {
     public String lat;
     public String lng;
 
-    public Geo(String lat, String lng){
+    public Geo(String lat, String lng) {
         this.lat = lat;
         this.lng = lng;
     }

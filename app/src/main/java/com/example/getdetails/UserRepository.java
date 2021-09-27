@@ -22,13 +22,14 @@ public class UserRepository {
         allUsers = userDao.getUsers();
     }
 
-    void updateUsers(List<User> user){
+    void updateUsers(List<User> user) {
 //        UserRoomDatabase.databaseWriteExecutor.execute(() -> {
 //            userDao.update(user);
 //        });
         new UpdateUserAsyncTask(userDao).execute(user);
 
     }
+
     // Room executes all queries on a separate thread.
     // Observed LiveData will notify the observer when the data has changed.
     LiveData<List<User>> getAllUsers() {
@@ -44,19 +45,21 @@ public class UserRepository {
         new InsertUserAsyncTask(userDao).execute(user);
     }
 
-    private static class InsertUserAsyncTask extends AsyncTask<User, Void, Void>{
+    private static class InsertUserAsyncTask extends AsyncTask<User, Void, Void> {
         private UserDao userDao;
 
-        private InsertUserAsyncTask(UserDao userDao){
+        private InsertUserAsyncTask(UserDao userDao) {
             this.userDao = userDao;
         }
+
         @Override
         protected Void doInBackground(User... users) {
             userDao.insert(users[0]);
             return null;
         }
     }
-//    private static class DeleteUserAsyncTask extends AsyncTask<User, Void, Void>{
+
+    //    private static class DeleteUserAsyncTask extends AsyncTask<User, Void, Void>{
 //        private UserDao userDao;
 //
 //        private DeleteUserAsyncTask(UserDao userDao){
@@ -68,18 +71,19 @@ public class UserRepository {
 //            return null;
 //        }
 //    }
-    private static class UpdateUserAsyncTask extends AsyncTask<List<User>, Void, Void>{
+    private static class UpdateUserAsyncTask extends AsyncTask<List<User>, Void, Void> {
         private UserDao userDao;
 
-        private UpdateUserAsyncTask(UserDao userDao){
+        private UpdateUserAsyncTask(UserDao userDao) {
             this.userDao = userDao;
         }
+
         @Override
         protected Void doInBackground(List<User>... users) {
             userDao.updateUsers(users[0]);
             return null;
         }
 
-}
+    }
 }
 

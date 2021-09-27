@@ -41,7 +41,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static GoogleSignInClient gsiClient;
     private Boolean signedIn = false;
     private int RC_SIGN_IN = 777;
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     @Override
-    public void onStart(){
+    public void onStart() {
         super.onStart();
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
 
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void updateUI(GoogleSignInAccount account) {
-        if (account!=null){
+        if (account != null) {
             //GoogleSignInAccount act = GoogleSignIn.getLastSignedInAccount(this);
             Intent intent = new Intent(this, RecyclerViewActivity.class);
             intent.putExtra("UserName", account.getDisplayName());
@@ -125,8 +125,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     @Override
-    public void onClick(View view){
-        switch (view.getId()){
+    public void onClick(View view) {
+        switch (view.getId()) {
             case R.id.sign_in_button:
                 signIn();
                 break;
@@ -149,6 +149,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             handleSignInResult(task);
         }
     }
+
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
@@ -160,7 +161,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             updateUI(null);
         }
     }
-//    private void getNotification() {
+
+    //    private void getNotification() {
 //        String c = sharedPreferences.getString("Class", null);
 //        //RetrieveUserData();
 //        if (c.equals(FragmentActivity.class.toString())){

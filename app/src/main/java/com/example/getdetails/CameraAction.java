@@ -48,9 +48,11 @@ public class CameraAction extends DialogFragment {
     public static String TAG = "CameraActionDialog";
     private static final int CAMERA_CODE = 0;
     private Uri uri;
+
     //private ImageView cameraView;
     public interface CameraDialogListener {
         public void onDialogPositiveClick(DialogFragment dialog);
+
         public void onDialogNegativeClick(DialogFragment dialog);
     }
 
@@ -71,6 +73,7 @@ public class CameraAction extends DialogFragment {
                     + " must implement NoticeDialogListener");
         }
     }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Build the dialog and set up the button click handlers
@@ -90,7 +93,6 @@ public class CameraAction extends DialogFragment {
                 });
         return builder.create();
     }
-
 
 
 }

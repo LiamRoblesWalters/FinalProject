@@ -35,7 +35,7 @@ import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Type;
 import java.util.List;
 
-public class FragmentActivity extends AppCompatActivity implements CameraAction.CameraDialogListener{
+public class FragmentActivity extends AppCompatActivity implements CameraAction.CameraDialogListener {
     private UserFragment fragment;
     private List<User> users;
     private static final String MyPrefs = "myPrefs";
@@ -46,7 +46,6 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
     private SharedPreferences sharedPreferences;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +54,6 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
 
         sharedPreferences = this.getSharedPreferences(MyPrefs, Context.MODE_PRIVATE);
         users = RecyclerViewActivity.userViewModel.getAllUsers().getValue();
-
 
 
         SharedPreferences.Editor editor = sharedPreferences.edit();// myObject - instance of MyObject
@@ -79,9 +77,8 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
         Position = getIntent().getIntExtra("Position", 2);
 
 
-
-
     }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -89,12 +86,13 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
     }
 
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
         Intent backIntent = new Intent(this, RecyclerViewActivity.class);
         startActivity(backIntent);
     }
+
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         SaveUserData();
     }
@@ -127,11 +125,12 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
 
 //            SaveUserData();
 
-        }else{
+        } else {
             Log.d("Error", "onActivityResult: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + uri);
         }
     }
-    public void SaveUserData(){
+
+    public void SaveUserData() {
         User user = users.get(Position);
         if (uriChanged == true) {
             user.imageUri = uri.toString();
@@ -141,7 +140,7 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
             uriChanged = false;
 
         }
-        if (fragment.textEdited == true){
+        if (fragment.textEdited == true) {
             user.name = fragment.userInfo.getText().toString().replace("Name:", "").trim();
             user.email = fragment.email.getText().toString().replace("Email:", "").trim();
             user.address.street = fragment.address.getText().toString().replace("Street:", "").trim();
@@ -151,7 +150,7 @@ public class FragmentActivity extends AppCompatActivity implements CameraAction.
 
     }
 
-//
+    //
 //
     public Uri getImageUri(Context inContext, Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();

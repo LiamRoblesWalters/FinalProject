@@ -89,7 +89,7 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
 
         if (getIntent().getExtras() != null && getIntent().getStringExtra("source").equals("Main")) {
 
-            if (sharedPreferences.getString("FirstLogin",  null)==null) {
+            if (sharedPreferences.getString("FirstLogin", null) == null) {
 
                 User newUser = new User(account.getDisplayName());
                 newUser.imageUri = String.format("https://robohash.org/%s?set=set5", newUser.name);
@@ -140,7 +140,6 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
         };
 
 
-
         recyclerViewAdapter = new RecyclerViewAdapter(this, users, listener); // instantiate recycler view adapter
 
         recyclerView.setAdapter(recyclerViewAdapter);
@@ -150,11 +149,10 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
         alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         Intent newIntent = new Intent(this, AlarmReceiver.class);
         alarmIntent = PendingIntent.getBroadcast(this, 0, newIntent, 0);
-        alarm.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 10, 60*1000, alarmIntent);
+        alarm.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 10, 60 * 1000, alarmIntent);
 
 
     }
-
 
 
     @Override
@@ -166,8 +164,6 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
     }
 
 
-
-
     @Override
     public void onPause() {
         super.onPause();
@@ -175,14 +171,14 @@ public class RecyclerViewActivity extends AppCompatActivity implements View.OnCl
 
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.recyclerview_menu, menu);
         return true;
 
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
+    public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             // ...
             case R.id.log_out:

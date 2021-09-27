@@ -72,9 +72,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.addMarker(new MarkerOptions().position(userLatLng).title(user.name));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(userLatLng));
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mMap.setMyLocationEnabled(true);
-            }else{
+            } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
@@ -85,9 +85,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @SuppressLint({"MissingSuperCall", "MissingPermission"})
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch(requestCode){
+        switch (requestCode) {
             case PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mMap.setMyLocationEnabled(true);
                 }
         }
